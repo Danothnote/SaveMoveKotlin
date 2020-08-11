@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SaveMove</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiZGFub2hlYWxlciIsImEiOiJjang5dzdoYXcxMG1tM3B1dGtwc2FsOGY3In0.OTlC7Ftp66SfeAaEi0uCug</string>
+    <string name="user_location_permission_explanation">Se necesitan permisos de ubicación para usar adecuadamente el mapa</string>
+    <string name="user_location_permission_not_granted">Por favor otorgar permisos de ubicación al dispositivo</string>
+    <string name="clicked_on_location_component">Esta es su ubicación</string>
+</resources>
