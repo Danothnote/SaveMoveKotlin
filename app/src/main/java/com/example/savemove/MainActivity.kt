@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.location.Location
-import android.net.Uri
 import android.os.Bundle
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -59,10 +58,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import timber.log.Timber
-import java.io.InputStream
 import java.lang.ref.WeakReference
 import java.net.URI
-import java.nio.charset.Charset
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListener,
     OnLocationClickListener, MapboxMap.OnMapClickListener {
@@ -101,13 +98,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
 
     private var isOpen = false
 
+    private var isFragmentOneLoaded = false
+    private val manager = supportFragmentManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
         setContentView(R.layout.activity_main)
-                mapView = findViewById(R.id.mapView)
-                mapView.onCreate(savedInstanceState)
-                mapView.getMapAsync(this)
+        mapView = findViewById(R.id.mapView)
+        mapView.onCreate(savedInstanceState)
+        mapView.getMapAsync(this)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -133,6 +133,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
             enableLocationComponent(it)
             addButtons(style)
         }
+    }
+
+    private fun showHeatMapFragment() {
+        val transaction = manager.beginTransaction()
+        val fragment = GeoJsonFragment()
+        transaction.replace(R.id.fragment_container, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+        isFragmentOneLoaded = true
+    }
+
+    fun closeFragment() {
+        val transaction = manager.beginTransaction()
+        supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
+            transaction.remove(
+                it
+            ).commit()
+        }
+        isFragmentOneLoaded = false
     }
 
     private fun clearMarkers() {
@@ -188,25 +207,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         BotonMas.setOnClickListener {
             toggleBtn()
             MapaDeCalor.setOnClickListener{
-                if (layers) {
-                    Firebase.storage.reference.child("seguridad.geojson").downloadUrl.addOnSuccessListener {
-                        uri ->
-                        val geoJson = URI(uri.toString())
-                        style.addSource(
-                        GeoJsonSource(
-                            HEATMAP_SOURCE,
-                            geoJson
-                        )
-                    )
-                        addHeatmapLayer(style)
-                        layers = false
-                    }.addOnFailureListener{
-                        exception -> Toast.makeText(this, exception.toString(), Toast.LENGTH_LONG).show()
-                    }
-                } else {
-                    clearLayers(style)
-                    layers = true
-                }
+                showHeatMapFragment()
             }
 
             Poligonos.setOnClickListener{
@@ -238,6 +239,29 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                     BtnNavigation.isFocusable = false
                 }
             }
+        }
+    }
+
+    fun fileHeatMap(file: String) {
+        val style: Style = mapboxMap.style!!
+        if (layers) {
+            Firebase.storage.reference.child("/GeoJSON/$file").downloadUrl.addOnSuccessListener {
+                    uri ->
+                val geoJson = URI(uri.toString())
+                style.addSource(
+                    GeoJsonSource(
+                        HEATMAP_SOURCE,
+                        geoJson
+                    )
+                )
+                addHeatmapLayer(style)
+                layers = false
+            }.addOnFailureListener{
+                    exception -> Toast.makeText(this, exception.toString(), Toast.LENGTH_LONG).show()
+            }
+        } else {
+            clearLayers(style)
+            layers = true
         }
     }
 
@@ -328,6 +352,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                     currentRoute = response.body()?.routes()?.first()
                     if (currentRoute != null) {
                         navigationMapRoute?.addRoute(currentRoute)
+                        BtnNavigation.startAnimation(btnOpen)
+                        BtnNavigation.isEnabled = true
+                        BtnNavigation.isFocusable = true
                     }
                 }
             })
@@ -411,9 +438,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
 
     override fun onMapClick(point: LatLng):Boolean {
         clearMarkers()
-        BtnNavigation.startAnimation(btnOpen)
-        BtnNavigation.isEnabled = true
-        BtnNavigation.isFocusable = true
         originLocation.run {
             val location = mapboxMap.locationComponent.lastKnownLocation
             val startPoint = Point.fromLngLat(location?.longitude!!, location.latitude)
@@ -461,9 +485,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                     ), 1000
                 )
                 clearMarkers()
-                BtnNavigation.startAnimation(btnOpen)
-                BtnNavigation.isEnabled = true
-                BtnNavigation.isFocusable = true
                 originLocation.run {
                     val location = mapboxMap.locationComponent.lastKnownLocation
                     val startPoint = Point.fromLngLat(location?.longitude!!, location.latitude)
