@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.google.android.material.appbar.AppBarLayout
+L    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            android:theme="@style/ThemeOverlay.AppCompat.Light">
+            android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -60,20 +60,6 @@
                 mapbox:srcCompat="@android:drawable/ic_menu_mylocation" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/BotonMas"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginEnd="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginBottom="72dp"
-                android:clickable="true"
-                android:focusable="true"
-                mapbox:backgroundTint="#F44336"
-                mapbox:fabSize="mini"
-                mapbox:srcCompat="@drawable/ic_baseline_add_24" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/MapaDeCalor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -87,50 +73,6 @@
                 mapbox:backgroundTint="#F44336"
                 mapbox:fabSize="mini"
                 mapbox:srcCompat="@drawable/ic_baseline_whatshot_24" />
-            <TextView
-                android:id="@+id/TxtMapaDeCalor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginEnd="43dp"
-                android:layout_marginRight="43dp"
-                android:layout_marginBottom="133dp"
-                android:background="@drawable/share_rounded"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="5dp"
-                android:text="Mapa de Calor"
-                android:textColor="@android:color/white"
-                android:visibility="invisible" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/Poligonos"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginEnd="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginBottom="184dp"
-                android:clickable="false"
-                android:focusable="true"
-                android:visibility="invisible"
-                mapbox:backgroundTint="#F44336"
-                mapbox:fabSize="mini"
-                mapbox:srcCompat="@android:drawable/ic_menu_view" />
-
-            <TextView
-                android:id="@+id/TxtPoligonos"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginEnd="48dp"
-                android:layout_marginRight="48dp"
-                android:layout_marginBottom="189dp"
-                android:background="@drawable/share_rounded"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="5dp"
-                android:text="Polígonos"
-                android:textColor="@android:color/white"
-                android:visibility="invisible" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/Rutas"
@@ -139,28 +81,13 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="16dp"
                 android:layout_marginRight="16dp"
-                android:layout_marginBottom="240dp"
-                android:clickable="false"
+                android:layout_marginBottom="72dp"
+                android:clickable="true"
                 android:focusable="true"
-                android:visibility="invisible"
+                android:visibility="visible"
                 mapbox:backgroundTint="#F44336"
                 mapbox:fabSize="mini"
                 mapbox:srcCompat="@drawable/ic_baseline_add_location_24" />
-
-            <TextView
-                android:id="@+id/TxtRuta"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginEnd="48dp"
-                android:layout_marginRight="48dp"
-                android:layout_marginBottom="245dp"
-                android:background="@drawable/share_rounded"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="5dp"
-                android:text="Crear Ruta"
-                android:textColor="@android:color/white"
-                android:visibility="invisible" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab_search"

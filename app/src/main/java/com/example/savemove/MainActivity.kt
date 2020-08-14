@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.animation.Animation
@@ -53,8 +54,7 @@ import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions
 import com.mapbox.mapboxsdk.style.expressions.Expression.*
 import com.mapbox.mapboxsdk.style.layers.HeatmapLayer
-import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.mapboxsdk.style.layers.Property.VISIBLE
+import com.mapbox.mapboxsdk.style.layers.Property.*
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory.*
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
@@ -102,7 +102,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     private var REQUEST_CODE_AUTOCOMPLETE = 1
     private var dark = false
     private lateinit var theme: String
-    private var layers = true
+    private var layers = false
+    private lateinit var layer: HeatmapLayer
 
     private var isOpen = false
 
@@ -112,6 +113,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     lateinit var toolbar: Toolbar
     lateinit var drawerLayout: DrawerLayout
     lateinit var navView: NavigationView
+    private var isChecked: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -232,93 +234,53 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                 .build(this@MainActivity)
             startActivityForResult(intent, REQUEST_CODE_AUTOCOMPLETE)
         }
-        BotonMas.setOnClickListener {
-            toggleBtn()
-            MapaDeCalor.setOnClickListener{
-
-            }
-
-            Poligonos.setOnClickListener{
+        Rutas.setOnClickListener{
+            if (!marcadores) {
+                mapboxMap.addOnMapClickListener(this)
+                Toast.makeText(this, "Toque el mapa para agregar un destino", Toast.LENGTH_SHORT).show()
+                marcadores = true
+            } else {
+                mapboxMap.removeOnMapClickListener(this)
                 clearMarkers()
-                toggleBtn()
-                clearLayers(style)
-                layers = true
+                marcadores = false
                 if (BtnNavigation.isEnabled) {
                     BtnNavigation.startAnimation(btnClose)
                 }
                 BtnNavigation.isEnabled = false
                 BtnNavigation.isFocusable = false
-                toggleStyle(dark)
             }
-
-            Rutas.setOnClickListener{
-                if (!marcadores) {
-                    mapboxMap.addOnMapClickListener(this)
-                    Toast.makeText(this, "Toque el mapa para agregar un destino", Toast.LENGTH_SHORT).show()
-                    marcadores = true
-                } else {
-                    mapboxMap.removeOnMapClickListener(this)
-                    clearMarkers()
-                    marcadores = false
-                    if (BtnNavigation.isEnabled) {
-                        BtnNavigation.startAnimation(btnClose)
-                    }
-                    BtnNavigation.isEnabled = false
-                    BtnNavigation.isFocusable = false
-                }
-            }
+        }
+        MapaDeCalor.setOnClickListener{
+            hideHeatmap()
         }
     }
 
     fun fileHeatMap(file: String) {
         val style: Style = mapboxMap.style!!
-        if (layers) {
-            Firebase.storage.reference.child("/GeoJSON/$file").downloadUrl.addOnSuccessListener {
-                    uri ->
-                val geoJson = URI(uri.toString())
-                style.addSource(
-                    GeoJsonSource(
-                        HEATMAP_SOURCE,
-                        geoJson
-                    )
+        clearLayers(style)
+        Firebase.storage.reference.child("/GeoJSON/$file").downloadUrl.addOnSuccessListener {
+                uri ->
+            val geoJson = URI(uri.toString())
+            style.addSource(
+                GeoJsonSource(
+                    HEATMAP_SOURCE,
+                    geoJson
                 )
-                addHeatmapLayer(style)
-                layers = false
-            }.addOnFailureListener{
-                    exception -> Toast.makeText(this, exception.toString(), Toast.LENGTH_LONG).show()
-            }
-        } else {
-            clearLayers(style)
-            layers = true
+            )
+            addHeatmapLayer(style)
+        }.addOnFailureListener{
+                exception -> Toast.makeText(this, exception.toString(), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun toggleBtn() {
         if (isOpen) {
             MapaDeCalor.startAnimation(fabClose)
-            TxtMapaDeCalor.startAnimation(fabClose)
-            Poligonos.startAnimation(fabClose)
-            TxtPoligonos.startAnimation(fabClose)
-            Rutas.startAnimation(fabClose)
-            TxtRuta.startAnimation(fabClose)
-            BotonMas.startAnimation(fabClockWise)
-
             MapaDeCalor.isEnabled = false
-            Poligonos.isEnabled = false
-            Rutas.isEnabled = false
             isOpen = false
         } else {
             MapaDeCalor.startAnimation(fabOpen)
-            TxtMapaDeCalor.startAnimation(fabOpen)
-            Poligonos.startAnimation(fabOpen)
-            TxtPoligonos.startAnimation(fabOpen)
-            Rutas.startAnimation(fabOpen)
-            TxtRuta.startAnimation(fabOpen)
-            BotonMas.startAnimation(fabAntiClockWise)
-
             MapaDeCalor.isEnabled = true
-            Poligonos.isEnabled = true
-            Rutas.isEnabled = true
             isOpen = true
         }
     }
@@ -327,8 +289,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         style.removeLayer(HEATMAP_LAYER_ID)
         style.removeSource(HEATMAP_SOURCE)
     }
+
     private fun addHeatmapLayer(@NonNull loadedMapStyle: Style) {
-        val layer = HeatmapLayer(HEATMAP_LAYER_ID, HEATMAP_SOURCE)
+        layer = HeatmapLayer(HEATMAP_LAYER_ID, HEATMAP_SOURCE)
         layer.maxZoom = 19F
         layer.sourceLayer = HEATMAP_SOURCE_ID
         layer.setProperties(
@@ -354,6 +317,24 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
             heatmapOpacity(0.6f)
         )
         loadedMapStyle.addLayer(layer)
+        layers = true
+        MapaDeCalor.startAnimation(fabOpen)
+        MapaDeCalor.isEnabled = true
+        isOpen = true
+    }
+
+    private fun hideHeatmap() {
+        layers = if (layers) {
+            layer.setProperties(
+                visibility(NONE)
+            )
+            false
+        } else {
+            layer.setProperties(
+                visibility(VISIBLE)
+            )
+            true
+        }
     }
 
     fun goToPlace(point: LatLng, latitude: Double, longitude: Double) {
@@ -584,7 +565,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.home_page -> {
-                Toast.makeText(this, "Home Page", Toast.LENGTH_SHORT).show()
+                val browserIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://github.com/Danothnote/SaveMoveKotlin")
+                )
+                startActivity(browserIntent)
             }
             R.id.geojson -> {
                 showFragment("Geojson")
@@ -592,11 +577,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
             R.id.tourism -> {
                 showFragment("Tourism")
             }
-            R.id.heatmap_switch -> {
-                Toast.makeText(this, "Mapa de calor", Toast.LENGTH_SHORT).show()
-            }
             R.id.style_switch -> {
-                Toast.makeText(this, "Estilo", Toast.LENGTH_SHORT).show()
+                val style: Style = mapboxMap.style!!
+                clearMarkers()
+                toggleBtn()
+                clearLayers(style)
+                layers = true
+                if (BtnNavigation.isEnabled) {
+                    BtnNavigation.startAnimation(btnClose)
+                }
+                BtnNavigation.isEnabled = false
+                BtnNavigation.isFocusable = false
+                toggleStyle(dark)
             }
         }
         drawerLayout.closeDrawer(GravityCompat.START)
