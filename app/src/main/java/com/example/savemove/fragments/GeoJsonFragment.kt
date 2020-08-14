@@ -1,4 +1,4 @@
-package com.example.savemove
+package com.example.savemove.fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.savemove.R
+import com.example.savemove.adapters.GeoJsonAdapter
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.fragment_geo_json_list.*
@@ -37,12 +39,24 @@ class GeoJsonFragment : Fragment() {
         Firebase.firestore.collection("Mapa de Calor")
             .get()
             .addOnSuccessListener { result ->
-                for (document in result) {
-                    val item = GeoJsonItem(document.data["title"].toString(), document.data["description"].toString(), document.data["file"].toString())
-                    listaGeoJson.add(item)
+                if (result.isEmpty) {
+                    Toast.makeText(mContext, "No hay datos disponibles", Toast.LENGTH_SHORT).show()
+                } else {
+                    for (document in result) {
+                        val item = GeoJsonItem(
+                            document.data["title"].toString(),
+                            document.data["description"].toString(),
+                            document.data["file"].toString()
+                        )
+                        listaGeoJson.add(item)
+                    }
+                    val adapter = GeoJsonAdapter(
+                        listaGeoJson
+                    )
+                    if (geojsonList != null) {
+                        geojsonList.adapter = adapter
+                    }
                 }
-                val adapter = GeoJsonAdapter(listaGeoJson)
-                geojsonList.adapter = adapter
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(mContext, exception.toString(), Toast.LENGTH_LONG).show()

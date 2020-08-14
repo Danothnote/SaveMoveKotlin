@@ -1,7 +1,12 @@
 <resources>
     <string name="app_name">SaveMove</string>
+    <string name="tab_text_1">Mapa</string>
+    <string name="tab_text_2">Mapa de Calor</string>
+    <string name="tab_text_3">Recomendados</string>
     <string name="mapbox_access_token">pk.eyJ1IjoiZGFub2hlYWxlciIsImEiOiJjang5dzdoYXcxMG1tM3B1dGtwc2FsOGY3In0.OTlC7Ftp66SfeAaEi0uCug</string>
     <string name="user_location_permission_explanation">Se necesitan permisos de ubicación para usar adecuadamente el mapa</string>
     <string name="user_location_permission_not_granted">Por favor otorgar permisos de ubicación al dispositivo</string>
     <string name="clicked_on_location_component">Esta es su ubicación</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

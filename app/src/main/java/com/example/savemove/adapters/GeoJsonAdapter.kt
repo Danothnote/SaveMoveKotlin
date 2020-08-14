@@ -1,10 +1,13 @@
-package com.example.savemove
+package com.example.savemove.adapters
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.savemove.MainActivity
+import com.example.savemove.R
+import com.example.savemove.fragments.GeoJsonItem
 
 class GeoJsonAdapter(private val listaGeoJson: List<GeoJsonItem>) : RecyclerView.Adapter<GeoJsonAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

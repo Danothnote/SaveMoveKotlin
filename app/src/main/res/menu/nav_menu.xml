@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <group>
+        <item
+            android:id="@+id/home_page"
+            android:icon="@drawable/ic_baseline_home_24"
+            android:title="Página Principal"/>
+        <item
+            android:id="@+id/geojson"
+            android:icon="@drawable/ic_baseline_whatshot_24_black"
+            android:title="Cargar Mapas de Calor"/>
+        <item
+            android:id="@+id/tourism"
+            android:icon="@drawable/ic_baseline_wallpaper_24"
+            android:title="Ver Lugares Recomendados"/>
+    </group>
+    <item android:title="Apariencia">
+        <menu>
+            <item
+                android:id="@+id/heatmap_switch"
+                android:title="Mapa de Calor Visible"
+                app:actionLayout="@layout/switch_item"
+                app:showAsAction="always"/>
+            <item
+                android:id="@+id/style_switch"
+                android:title="Tema Oscuro"
+                app:actionLayout="@layout/switch_item"
+                app:showAsAction="always"/>
+        </menu>
+    </item>
+</menu>

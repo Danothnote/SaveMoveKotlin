@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Light">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SaveMove"
+                    android:textColor="@android:color/white"
+                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"/>
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.mapbox.mapboxsdk.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            mapbox:mapbox_uiCompassMarginTop="72dp"
+            mapbox:mapbox_uiCompassMarginRight="12dp"
+            mapbox:mapbox_cameraZoom="15">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/floatingActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="16dp"
+                android:layout_marginRight="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="visible"
+                mapbox:backgroundTint="#3F51B5"
+                mapbox:fabSize="mini"
+                mapbox:srcCompat="@android:drawable/ic_menu_mylocation" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/BotonMas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="72dp"
+                android:clickable="true"
+                android:focusable="true"
+                mapbox:backgroundTint="#F44336"
+                mapbox:fabSize="mini"
+                mapbox:srcCompat="@drawable/ic_baseline_add_24" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/MapaDeCalor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="128dp"
+                android:clickable="false"
+                android:focusable="true"
+                android:visibility="invisible"
+                mapbox:backgroundTint="#F44336"
+                mapbox:fabSize="mini"
+                mapbox:srcCompat="@drawable/ic_baseline_whatshot_24" />
+            <TextView
+                android:id="@+id/TxtMapaDeCalor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="43dp"
+                android:layout_marginRight="43dp"
+                android:layout_marginBottom="133dp"
+                android:background="@drawable/share_rounded"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:text="Mapa de Calor"
+                android:textColor="@android:color/white"
+                android:visibility="invisible" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/Poligonos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="184dp"
+                android:clickable="false"
+                android:focusable="true"
+                android:visibility="invisible"
+                mapbox:backgroundTint="#F44336"
+                mapbox:fabSize="mini"
+                mapbox:srcCompat="@android:drawable/ic_menu_view" />
+
+            <TextView
+                android:id="@+id/TxtPoligonos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="48dp"
+                android:layout_marginRight="48dp"
+                android:layout_marginBottom="189dp"
+                android:background="@drawable/share_rounded"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:text="Polígonos"
+                android:textColor="@android:color/white"
+                android:visibility="invisible" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/Rutas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="240dp"
+                android:clickable="false"
+                android:focusable="true"
+                android:visibility="invisible"
+                mapbox:backgroundTint="#F44336"
+                mapbox:fabSize="mini"
+                mapbox:srcCompat="@drawable/ic_baseline_add_location_24" />
+
+            <TextView
+                android:id="@+id/TxtRuta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="48dp"
+                android:layout_marginRight="48dp"
+                android:layout_marginBottom="245dp"
+                android:background="@drawable/share_rounded"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:text="Crear Ruta"
+                android:textColor="@android:color/white"
+                android:visibility="invisible" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|top"
+                android:layout_margin="16dp"
+                mapbox:fabSize="mini"
+                android:tint="@android:color/white"
+                android:clickable="true"
+                android:focusable="true"
+                mapbox:backgroundTint="@color/colorPrimary"
+                mapbox:srcCompat="@android:drawable/ic_search_category_default" />
+
+            <Button
+                android:id="@+id/BtnNavigation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/share_rounded"
+                android:clickable="false"
+                android:focusable="false"
+                android:enabled="false"
+                android:visibility="invisible"
+                android:paddingHorizontal="10dp"
+                android:text="Iniciar Navegación"
+                android:textColor="@android:color/white" />
+        </com.mapbox.mapboxsdk.maps.MapView>
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+    </androidx.drawerlayout.widget.DrawerLayout>
+</LinearLayout>

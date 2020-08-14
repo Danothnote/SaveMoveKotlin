@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -11,24 +12,28 @@
         android:background="@color/colorPrimary"
         android:paddingHorizontal="10dp"
         android:paddingVertical="20dp">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
             android:layout_gravity="center"
             android:textAlignment="center"
-            android:text="Escoja un archivo GeoJSON"
+            android:text="Escoja un destino turístico"
             android:textSize="25dp"
             android:textColor="@android:color/white"
             android:textStyle="bold" />
+
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/geojsonList"
-            android:name="com.example.savemove.GeoJsonFragment"
+            android:id="@+id/tourismList"
+            android:name="com.example.savemove.fragments.TourismFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             app:layoutManager="LinearLayoutManager"
-            tools:context=".fragments.GeoJsonFragment"
-            tools:listitem="@layout/fragment_geo_json">
-        </androidx.recyclerview.widget.RecyclerView>
+            tools:context=".fragments.TourismFragment"
+            tools:listitem="@layout/fragment_tourism" />
     </LinearLayout>
+
 </RelativeLayout>

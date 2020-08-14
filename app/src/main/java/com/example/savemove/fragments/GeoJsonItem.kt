@@ -1,4 +1,4 @@
-package com.example.savemove
+package com.example.savemove.fragments
 
 import java.io.Serializable
 

@@ -7,12 +7,20 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.annotation.NonNull
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.example.savemove.fragments.GeoJsonFragment
+import com.example.savemove.fragments.TourismFragment
+import com.google.android.material.navigation.NavigationView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import com.mapbox.android.core.location.LocationEngine
@@ -53,7 +61,7 @@ import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -62,7 +70,7 @@ import java.lang.ref.WeakReference
 import java.net.URI
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListener,
-    OnLocationClickListener, MapboxMap.OnMapClickListener {
+    OnLocationClickListener, MapboxMap.OnMapClickListener, NavigationView.OnNavigationItemSelectedListener {
     private lateinit var mapView: MapView
     private lateinit var mapboxMap: MapboxMap
     private var HEATMAP_LAYER_ID = "seguridad-heat"
@@ -101,6 +109,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     private var isFragmentOneLoaded = false
     private val manager = supportFragmentManager
 
+    lateinit var toolbar: Toolbar
+    lateinit var drawerLayout: DrawerLayout
+    lateinit var navView: NavigationView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
@@ -108,6 +120,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         mapView = findViewById(R.id.mapView)
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
+
+        toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        drawerLayout = findViewById(R.id.drawer_layout)
+        navView = findViewById(R.id.nav_view)
+
+        val toggle = ActionBarDrawerToggle(
+            this, drawerLayout, toolbar, 0,0
+        )
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+        navView.setNavigationItemSelectedListener(this)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -135,10 +160,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         }
     }
 
-    private fun showHeatMapFragment() {
+    private fun showFragment(fragmentShow: String) {
         val transaction = manager.beginTransaction()
-        val fragment = GeoJsonFragment()
-        transaction.replace(R.id.fragment_container, fragment)
+        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_from_right, R.anim.enter_from_right, R.anim.exit_from_right)
+        if (fragmentShow == "Tourism") {
+            transaction.replace(R.id.fragment_container, TourismFragment())
+        }
+        if (fragmentShow == "Geojson") {
+            transaction.replace(R.id.fragment_container, GeoJsonFragment())
+        }
         transaction.addToBackStack(null)
         transaction.commit()
         isFragmentOneLoaded = true
@@ -147,9 +177,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     fun closeFragment() {
         val transaction = manager.beginTransaction()
         supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
-            transaction.remove(
-                it
-            ).commit()
+            transaction.remove(it).commit()
         }
         isFragmentOneLoaded = false
     }
@@ -207,7 +235,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         BotonMas.setOnClickListener {
             toggleBtn()
             MapaDeCalor.setOnClickListener{
-                showHeatMapFragment()
+
             }
 
             Poligonos.setOnClickListener{
@@ -326,6 +354,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
             heatmapOpacity(0.6f)
         )
         loadedMapStyle.addLayer(layer)
+    }
+
+    fun goToPlace(point: LatLng, latitude: Double, longitude: Double) {
+        clearMarkers()
+        originLocation.run {
+            val location = mapboxMap.locationComponent.lastKnownLocation
+            val startPoint = Point.fromLngLat(location?.longitude!!, location.latitude)
+            val endPoint = Point.fromLngLat(longitude, latitude)
+            getRoute(startPoint, endPoint)
+        }
+        addMarker(point)
+        mapboxMap.animateCamera(
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition.Builder()
+                    .target(point)
+                    .zoom(16.0)
+                    .build()
+            ), 1000
+        )
     }
 
     private fun getRoute(originPoint: Point, endPoint: Point) {
@@ -532,5 +579,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         super.onDestroy()
         locationEngine.removeLocationUpdates(callback)
         mapView.onDestroy()
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.home_page -> {
+                Toast.makeText(this, "Home Page", Toast.LENGTH_SHORT).show()
+            }
+            R.id.geojson -> {
+                showFragment("Geojson")
+            }
+            R.id.tourism -> {
+                showFragment("Tourism")
+            }
+            R.id.heatmap_switch -> {
+                Toast.makeText(this, "Mapa de calor", Toast.LENGTH_SHORT).show()
+            }
+            R.id.style_switch -> {
+                Toast.makeText(this, "Estilo", Toast.LENGTH_SHORT).show()
+            }
+        }
+        drawerLayout.closeDrawer(GravityCompat.START)
+        return true
     }
 }
