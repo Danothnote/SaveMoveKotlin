@@ -27,9 +27,12 @@ class TourismAdapter(private val listaTurismo: List<TourismItem>) : RecyclerView
             .inflate(R.layout.fragment_tourism, parent, false)
         return ViewHolder(view).listen { pos, type ->
             val item = listaTurismo[pos]
-            val point = LatLng(item.latitude, item.longitude)
-            (parent.context as MainActivity).goToPlace(point, item.latitude, item.longitude)
-            (parent.context as MainActivity).closeFragment()
+            val title: String = item.title
+            val description: String = item.description
+            val img: String = item.img
+            val latitude: Double = item.latitude
+            val longitude: Double = item.longitude
+            (parent.context as MainActivity).showItem(title, description, img, latitude, longitude)
         }
     }
 

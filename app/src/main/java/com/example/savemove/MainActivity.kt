@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.example.savemove.fragments.GeoJsonFragment
+import com.example.savemove.fragments.ItemFragment
 import com.example.savemove.fragments.TourismFragment
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.ktx.Firebase
@@ -113,7 +114,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     lateinit var toolbar: Toolbar
     lateinit var drawerLayout: DrawerLayout
     lateinit var navView: NavigationView
-    private var isChecked: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -171,6 +171,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         if (fragmentShow == "Geojson") {
             transaction.replace(R.id.fragment_container, GeoJsonFragment())
         }
+        transaction.addToBackStack(null)
+        transaction.commit()
+        isFragmentOneLoaded = true
+    }
+
+    fun showItem(title:String, description:String, img:String, latitude: Double, longitude: Double) {
+        val fragment = ItemFragment.newInstance(title, description, img, latitude, longitude)
+        val transaction = manager.beginTransaction()
+        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_from_right, R.anim.enter_from_right, R.anim.exit_from_right)
+        transaction.replace(R.id.fragment_container, fragment)
         transaction.addToBackStack(null)
         transaction.commit()
         isFragmentOneLoaded = true
