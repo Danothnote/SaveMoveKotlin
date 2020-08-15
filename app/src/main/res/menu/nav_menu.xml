@@ -15,6 +15,18 @@
             android:icon="@drawable/ic_baseline_wallpaper_24"
             android:title="Ver Lugares Recomendados"/>
     </group>
+    <item android:title="Subir Información">
+        <menu>
+            <item
+                android:id="@+id/uploadtourism"
+                android:icon="@drawable/ic_baseline_wallpaper_24"
+                android:title="Agregar Lugares Recomendados"/>
+            <item
+                android:id="@+id/uploadgeojson"
+                android:icon="@drawable/ic_baseline_wallpaper_24"
+                android:title="Agregar archivos GeoJSON"/>
+        </menu>
+    </item>
     <item android:title="Apariencia">
         <menu>
             <item

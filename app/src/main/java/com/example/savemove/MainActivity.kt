@@ -19,9 +19,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import com.example.savemove.fragments.GeoJsonFragment
-import com.example.savemove.fragments.ItemFragment
-import com.example.savemove.fragments.TourismFragment
+import com.example.savemove.fragments.*
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
@@ -170,6 +168,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         }
         if (fragmentShow == "Geojson") {
             transaction.replace(R.id.fragment_container, GeoJsonFragment())
+        }
+        if (fragmentShow == "uTourism") {
+            transaction.replace(R.id.fragment_container, UploadTourismFragment())
+        }
+        if (fragmentShow == "uGeojson") {
+            transaction.replace(R.id.fragment_container, UploadGeoJsonFragment())
         }
         transaction.addToBackStack(null)
         transaction.commit()
@@ -599,6 +603,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                 BtnNavigation.isEnabled = false
                 BtnNavigation.isFocusable = false
                 toggleStyle(dark)
+            }
+            R.id.uploadtourism -> {
+                showFragment("uTourism")
+            }
+            R.id.uploadgeojson -> {
+                showFragment("uGeojson")
             }
         }
         drawerLayout.closeDrawer(GravityCompat.START)
