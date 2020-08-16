@@ -601,6 +601,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                     currentRoute = response.body()?.routes()?.first()
                     if (currentRoute != null) {
                         navigationMapRoute?.addRoute(currentRoute)
+                        uploadMarker = false
                         route = true
                         BtnNavigation.text = "Iniciar Navegación"
                         BtnNavigation.startAnimation(btnOpen)
