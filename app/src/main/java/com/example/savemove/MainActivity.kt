@@ -252,7 +252,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
             if (route) {
                 val navigationLauncherOptions = NavigationLauncherOptions.builder()
                     .directionsRoute(currentRoute)
-                    .shouldSimulateRoute(true)
+                    .shouldSimulateRoute(false)
                     .build()
                 NavigationLauncher.startNavigation(this, navigationLauncherOptions)
             }
@@ -328,6 +328,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                     removeClicListener()
                     addClicListener()
                 }
+                route = false
                 uploadMarker = true
                 addClicListener()
             }
