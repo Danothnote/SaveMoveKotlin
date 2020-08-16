@@ -14,6 +14,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import com.bumptech.glide.Glide
+import com.example.savemove.MainActivity
 import com.example.savemove.R
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -24,8 +25,8 @@ import java.lang.Exception
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val LATITUDE = "lat"
+private const val LONGITUDE = "lon"
 
 /**
  * A simple [Fragment] subclass.
@@ -34,8 +35,8 @@ private const val ARG_PARAM2 = "param2"
  */
 class UploadTourismFragment : Fragment() {
     // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var lat: Double? = null
+    private var lon: Double? = null
 
     private lateinit var mContext: Context
     private lateinit var tImg: ImageView
@@ -47,7 +48,9 @@ class UploadTourismFragment : Fragment() {
     private lateinit var tLog: String
     private lateinit var filePath: Uri
     private lateinit var mStorageRef: StorageReference
+    private lateinit var nameImg: String
     private var fileSelected = false
+    private var tsLong:Long = 0
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -57,8 +60,8 @@ class UploadTourismFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+            lat = it.getDouble(LATITUDE)
+            lon = it.getDouble(LONGITUDE)
         }
     }
 
@@ -78,8 +81,10 @@ class UploadTourismFragment : Fragment() {
         }
         tBtn.setOnClickListener{
             if (fileSelected && editTTitle.text.toString() != "" && editTProvincia.text.toString() != "" && editTDescription.text.toString() != "") {
-                uploadDoc()
                 uploadFile()
+                uploadDoc()
+                (mContext as MainActivity).closeFragment()
+                (mContext as MainActivity).finishUploadTourism()
             } else {
                 Toast.makeText(mContext, "Los datos no están completos", Toast.LENGTH_LONG).show()
             }
@@ -108,9 +113,9 @@ class UploadTourismFragment : Fragment() {
             "title" to editTTitle.text.toString(),
             "provincia" to editTProvincia.text.toString(),
             "description" to editTDescription.text.toString(),
-            "img" to filePath.lastPathSegment.toString(),
-            "latitude" to 0.0,
-            "longitude" to 0.0
+            "img" to nameImg,
+            "latitude" to lat,
+            "longitude" to lon
         )
         Firebase.firestore.collection("Lugares Recomendados")
             .document()
@@ -120,9 +125,11 @@ class UploadTourismFragment : Fragment() {
     }
 
     private fun uploadFile() {
+        tsLong = System.currentTimeMillis()/1000
         mStorageRef = FirebaseStorage.getInstance().reference
         val file = filePath
-        val geojsonRef = mStorageRef.child("Recomendados/${file.lastPathSegment}")
+        nameImg = "$tsLong${file.lastPathSegment}"
+        val geojsonRef = mStorageRef.child("Recomendados/$nameImg")
         val uploadTask = geojsonRef.putFile(file)
         uploadTask.addOnFailureListener{e: Exception ->
             Toast.makeText(mContext, e.toString(), Toast.LENGTH_LONG).show()
@@ -142,11 +149,11 @@ class UploadTourismFragment : Fragment() {
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
+        fun newInstance(lat: Double, lon: Double) =
             UploadTourismFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                    putDouble(LATITUDE, lat)
+                    putDouble(LONGITUDE, lon)
                 }
             }
     }

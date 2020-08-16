@@ -51,6 +51,8 @@ import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions
+import com.mapbox.mapboxsdk.plugins.places.picker.PlacePicker
+import com.mapbox.mapboxsdk.plugins.places.picker.model.PlacePickerOptions
 import com.mapbox.mapboxsdk.style.expressions.Expression.*
 import com.mapbox.mapboxsdk.style.layers.HeatmapLayer
 import com.mapbox.mapboxsdk.style.layers.Property.*
@@ -87,7 +89,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
 
     private val SAVED_STATE_LOCATION = "saved_state_location"
     private var lastLocation: Location? = null
-    private var marcadores = false
+    private var marker: Boolean = false
+    private var route: Boolean = false
+    private var uploadMarker: Boolean = false
+    private var lat: Double = 0.0
+    private var lon: Double = 0.0
 
     var navigationMapRoute: NavigationMapRoute? = null
     var currentRoute: DirectionsRoute? = null
@@ -99,6 +105,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
     private val callback = LocationListeningCallback(this)
 
     private var REQUEST_CODE_AUTOCOMPLETE = 1
+    private val PLACE_SELECTION_REQUEST_CODE = 56789
     private var dark = false
     private lateinit var theme: String
     private var layers = false
@@ -143,263 +150,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
             enableLocationComponent(it)
             addButtons(style)
         }
-    }
-
-    private fun toggleStyle(dark: Boolean) {
-        this.dark = if (dark) {
-            theme = "mapbox://styles/danohealer/cjxbcwi6s4eob1cpw6lupzig3"
-            false
-        } else {
-            theme = "mapbox://styles/danohealer/cjxrm9kn36lns1cqeups6qc3m"
-            true
-        }
-        mapboxMap.setStyle(Style.Builder().fromUri(theme)) {
-            val style: Style = mapboxMap.style!!
-            enableLocationComponent(it)
-            addButtons(style)
-        }
-    }
-
-    private fun showFragment(fragmentShow: String) {
-        val transaction = manager.beginTransaction()
-        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_from_right, R.anim.enter_from_right, R.anim.exit_from_right)
-        if (fragmentShow == "Tourism") {
-            transaction.replace(R.id.fragment_container, TourismFragment())
-        }
-        if (fragmentShow == "Geojson") {
-            transaction.replace(R.id.fragment_container, GeoJsonFragment())
-        }
-        if (fragmentShow == "uTourism") {
-            transaction.replace(R.id.fragment_container, UploadTourismFragment())
-        }
-        if (fragmentShow == "uGeojson") {
-            transaction.replace(R.id.fragment_container, UploadGeoJsonFragment())
-        }
-        transaction.addToBackStack(null)
-        transaction.commit()
-        isFragmentOneLoaded = true
-    }
-
-    fun showItem(title:String, description:String, img:String, latitude: Double, longitude: Double) {
-        val fragment = ItemFragment.newInstance(title, description, img, latitude, longitude)
-        val transaction = manager.beginTransaction()
-        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_from_right, R.anim.enter_from_right, R.anim.exit_from_right)
-        transaction.replace(R.id.fragment_container, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-        isFragmentOneLoaded = true
-    }
-
-    fun closeFragment() {
-        val transaction = manager.beginTransaction()
-        supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
-            transaction.remove(it).commit()
-        }
-        isFragmentOneLoaded = false
-    }
-
-    private fun clearMarkers() {
-        if (!symbolManager.annotations.isEmpty) {
-            symbolManager.annotations.clear()
-            symbolManager.delete(symbol)
-            navigationMapRoute?.removeRoute()
-        }
-    }
-
-    private fun addButtons(style: Style) {
-        fabOpen = AnimationUtils.loadAnimation(this, R.anim.fab_open)
-        fabClose = AnimationUtils.loadAnimation(this, R.anim.fab_close)
-        fabClockWise = AnimationUtils.loadAnimation(this, R.anim.rotate_clockwise)
-        fabAntiClockWise = AnimationUtils.loadAnimation(this, R.anim.rotate_anticlockwise)
-        btnClose = AnimationUtils.loadAnimation(this, R.anim.fab_close)
-        btnOpen = AnimationUtils.loadAnimation(this, R.anim.fab_open)
-        style.addImage(("marker_icon"), BitmapFactory.decodeResource(resources, R.drawable.mapbox_marker_icon_default))
-        symbolManager = SymbolManager(mapView, mapboxMap, style)
-        symbolManager.iconAllowOverlap = true
-        symbolManager.iconTranslate = arrayOf(-4f, 5f)
-        symbolManager.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
-
-        floatingActionButton.setOnClickListener{
-            val position = CameraPosition.Builder()
-                .target(LatLng(mapboxMap.locationComponent.lastKnownLocation))
-                .zoom(17.0)
-                .build()
-            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 300)
-        }
-        BtnNavigation.setOnClickListener{
-            val navigationLauncherOptions = NavigationLauncherOptions.builder()
-                .directionsRoute(currentRoute)
-                .shouldSimulateRoute(true)
-                .build()
-
-            NavigationLauncher.startNavigation(this, navigationLauncherOptions) //4
-        }
-        fab_search.setOnClickListener{
-            val intent: Intent = PlaceAutocomplete.IntentBuilder()
-                .accessToken(Mapbox.getAccessToken()!!)
-                .placeOptions(
-                    PlaceOptions.builder()
-                        .language("ES")
-                        .proximity(Point.fromLngLat(mapboxMap.locationComponent.lastKnownLocation?.longitude!!, mapboxMap.locationComponent.lastKnownLocation?.latitude!!))
-                        .backgroundColor(Color.parseColor("#EEEEEE"))
-                        .limit(10)
-                        .build(PlaceOptions.MODE_CARDS)
-                )
-                .build(this@MainActivity)
-            startActivityForResult(intent, REQUEST_CODE_AUTOCOMPLETE)
-        }
-        Rutas.setOnClickListener{
-            if (!marcadores) {
-                mapboxMap.addOnMapClickListener(this)
-                Toast.makeText(this, "Toque el mapa para agregar un destino", Toast.LENGTH_SHORT).show()
-                marcadores = true
-            } else {
-                mapboxMap.removeOnMapClickListener(this)
-                clearMarkers()
-                marcadores = false
-                if (BtnNavigation.isEnabled) {
-                    BtnNavigation.startAnimation(btnClose)
-                }
-                BtnNavigation.isEnabled = false
-                BtnNavigation.isFocusable = false
-            }
-        }
-        MapaDeCalor.setOnClickListener{
-            hideHeatmap()
-        }
-    }
-
-    fun fileHeatMap(file: String) {
-        val style: Style = mapboxMap.style!!
-        clearLayers(style)
-        Firebase.storage.reference.child("/GeoJSON/$file").downloadUrl.addOnSuccessListener {
-                uri ->
-            val geoJson = URI(uri.toString())
-            style.addSource(
-                GeoJsonSource(
-                    HEATMAP_SOURCE,
-                    geoJson
-                )
-            )
-            addHeatmapLayer(style)
-        }.addOnFailureListener{
-                exception -> Toast.makeText(this, exception.toString(), Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun toggleBtn() {
-        if (isOpen) {
-            MapaDeCalor.startAnimation(fabClose)
-            MapaDeCalor.isEnabled = false
-            isOpen = false
-        } else {
-            MapaDeCalor.startAnimation(fabOpen)
-            MapaDeCalor.isEnabled = true
-            isOpen = true
-        }
-    }
-
-    private fun clearLayers(style: Style) {
-        style.removeLayer(HEATMAP_LAYER_ID)
-        style.removeSource(HEATMAP_SOURCE)
-    }
-
-    private fun addHeatmapLayer(@NonNull loadedMapStyle: Style) {
-        layer = HeatmapLayer(HEATMAP_LAYER_ID, HEATMAP_SOURCE)
-        layer.maxZoom = 19F
-        layer.sourceLayer = HEATMAP_SOURCE_ID
-        layer.setProperties(
-            visibility(VISIBLE),
-            heatmapColor(
-                interpolate(
-                    linear(), heatmapDensity(),
-                    literal(0.01), rgba(0, 0, 0, 0),
-                    literal(0.1), rgba(0, 2, 114, .1),
-                    literal(0.2), rgba(0, 6, 219, .15),
-                    literal(0.3), rgba(0, 74, 255, .2),
-                    literal(0.4), rgba(0, 202, 255, .25),
-                    literal(0.5), rgba(73, 255, 154, .3),
-                    literal(0.6), rgba(171, 255, 59, .35),
-                    literal(0.7), rgba(255, 197, 3, .4),
-                    literal(0.8), rgba(255, 82, 1, 0.6),
-                    literal(0.9), rgba(196, 0, 1, 0.6),
-                    literal(0.95), rgba(121, 0, 0, 0.6)
-                )
-            ),
-            heatmapIntensity(2f),
-            heatmapRadius(30f),
-            heatmapOpacity(0.6f)
-        )
-        loadedMapStyle.addLayer(layer)
-        layers = true
-        MapaDeCalor.startAnimation(fabOpen)
-        MapaDeCalor.isEnabled = true
-        isOpen = true
-    }
-
-    private fun hideHeatmap() {
-        layers = if (layers) {
-            layer.setProperties(
-                visibility(NONE)
-            )
-            false
-        } else {
-            layer.setProperties(
-                visibility(VISIBLE)
-            )
-            true
-        }
-    }
-
-    fun goToPlace(point: LatLng, latitude: Double, longitude: Double) {
-        clearMarkers()
-        originLocation.run {
-            val location = mapboxMap.locationComponent.lastKnownLocation
-            val startPoint = Point.fromLngLat(location?.longitude!!, location.latitude)
-            val endPoint = Point.fromLngLat(longitude, latitude)
-            getRoute(startPoint, endPoint)
-        }
-        addMarker(point)
-        mapboxMap.animateCamera(
-            CameraUpdateFactory.newCameraPosition(
-                CameraPosition.Builder()
-                    .target(point)
-                    .zoom(16.0)
-                    .build()
-            ), 1000
-        )
-    }
-
-    private fun getRoute(originPoint: Point, endPoint: Point) {
-        val unitType = DirectionsCriteria.METRIC
-        NavigationRoute.builder(this)
-            .accessToken(Mapbox.getAccessToken()!!)
-            .origin(originPoint)
-            .destination(endPoint)
-            .voiceUnits(unitType)
-            .build()
-            .getRoute(object : Callback<DirectionsResponse> {
-                override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
-                    Timber.d(t.localizedMessage)
-                }
-
-                override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>
-                ) {
-                    if (navigationMapRoute != null) {
-                        navigationMapRoute?.updateRouteVisibilityTo(false)
-                    } else {
-                        navigationMapRoute = NavigationMapRoute(null, mapView, mapboxMap)
-                    }
-
-                    currentRoute = response.body()?.routes()?.first()
-                    if (currentRoute != null) {
-                        navigationMapRoute?.addRoute(currentRoute)
-                        BtnNavigation.startAnimation(btnOpen)
-                        BtnNavigation.isEnabled = true
-                        BtnNavigation.isFocusable = true
-                    }
-                }
-            })
     }
 
     @SuppressLint("MissingPermission")
@@ -478,29 +228,130 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
             .show()
     }
 
-    override fun onMapClick(point: LatLng):Boolean {
-        clearMarkers()
-        originLocation.run {
-            val location = mapboxMap.locationComponent.lastKnownLocation
-            val startPoint = Point.fromLngLat(location?.longitude!!, location.latitude)
-            val endPoint = Point.fromLngLat(point.longitude, point.latitude)
-            getRoute(startPoint, endPoint)
+    private fun addButtons(style: Style) {
+        fabOpen = AnimationUtils.loadAnimation(this, R.anim.fab_open)
+        fabClose = AnimationUtils.loadAnimation(this, R.anim.fab_close)
+        fabClockWise = AnimationUtils.loadAnimation(this, R.anim.rotate_clockwise)
+        fabAntiClockWise = AnimationUtils.loadAnimation(this, R.anim.rotate_anticlockwise)
+        btnClose = AnimationUtils.loadAnimation(this, R.anim.fab_close)
+        btnOpen = AnimationUtils.loadAnimation(this, R.anim.fab_open)
+        style.addImage(("marker_icon"), BitmapFactory.decodeResource(resources, R.drawable.mapbox_marker_icon_default))
+        symbolManager = SymbolManager(mapView, mapboxMap, style)
+        symbolManager.iconAllowOverlap = true
+        symbolManager.iconTranslate = arrayOf(-4f, 5f)
+        symbolManager.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
+
+        fabLocation.setOnClickListener{
+            val position = CameraPosition.Builder()
+                .target(LatLng(mapboxMap.locationComponent.lastKnownLocation))
+                .zoom(17.0)
+                .build()
+            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 300)
         }
-        addMarker(point)
+        BtnNavigation.setOnClickListener{
+            if (route) {
+                val navigationLauncherOptions = NavigationLauncherOptions.builder()
+                    .directionsRoute(currentRoute)
+                    .shouldSimulateRoute(true)
+                    .build()
+                NavigationLauncher.startNavigation(this, navigationLauncherOptions)
+            }
+            if (uploadMarker) {
+                showFragment("uTourism")
+            }
+        }
+        fab_search.setOnClickListener{
+            val intent: Intent = PlaceAutocomplete.IntentBuilder()
+                .accessToken(Mapbox.getAccessToken()!!)
+                .placeOptions(
+                    PlaceOptions.builder()
+                        .language("ES")
+                        .proximity(Point.fromLngLat(mapboxMap.locationComponent.lastKnownLocation?.longitude!!, mapboxMap.locationComponent.lastKnownLocation?.latitude!!))
+                        .backgroundColor(Color.argb(99,98,0,234))
+                        .limit(10)
+                        .build(PlaceOptions.MODE_CARDS)
+                )
+                .build(this@MainActivity)
+            startActivityForResult(intent, REQUEST_CODE_AUTOCOMPLETE)
+        }
+        Rutas.setOnClickListener{
+            if (uploadMarker) {
+                uploadMarker = false
+                removeClicListener()
+                addClicListener()
+            }
+            if (!marker) {
+                marker = true
+                addClicListener()
+            } else {
+                marker = false
+                removeClicListener()
+            }
+        }
+        MapaDeCalor.setOnClickListener{
+            hideHeatmap()
+        }
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.home_page -> {
+                val browserIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://github.com/Danothnote/SaveMoveKotlin")
+                )
+                startActivity(browserIntent)
+            }
+            R.id.geojson -> {
+                showFragment("Geojson")
+            }
+            R.id.tourism -> {
+                showFragment("Tourism")
+            }
+            R.id.style_switch -> {
+                val style: Style = mapboxMap.style!!
+                isOpen = true
+                toggleBtn()
+                clearMarkers()
+                clearLayers(style)
+                layers = true
+                if (BtnNavigation.isEnabled) {
+                    BtnNavigation.startAnimation(btnClose)
+                }
+                BtnNavigation.isEnabled = false
+                BtnNavigation.isFocusable = false
+                toggleStyle(dark)
+            }
+            R.id.uploadtourism -> {
+                if (marker) {
+                    marker = false
+                    removeClicListener()
+                    addClicListener()
+                }
+                uploadMarker = true
+                addClicListener()
+            }
+            R.id.uploadgeojson -> {
+                showFragment("uGeojson")
+            }
+        }
+        drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
 
-    private fun addMarker(point: LatLng) {
-        symbol = symbolManager.create(SymbolOptions()
-            .withIconImage("marker_icon")
-            .withLatLng(point)
-        )
-        symbolManager.addLongClickListener { symbol ->
-            symbolManager.delete(symbol)
-            navigationMapRoute?.removeRoute()
-            BtnNavigation.startAnimation(btnClose)
-            BtnNavigation.isEnabled = false
-            BtnNavigation.isFocusable = false
+    private fun toggleBtn() {
+        if (isOpen) {
+            if (MapaDeCalor.isEnabled) {
+                MapaDeCalor.startAnimation(fabClose)
+            }
+            MapaDeCalor.isEnabled = false
+            isOpen = false
+        } else {
+            if (!MapaDeCalor.isEnabled) {
+                MapaDeCalor.startAnimation(fabOpen)
+            }
+            MapaDeCalor.isEnabled = true
+            isOpen = true
         }
     }
 
@@ -536,6 +387,246 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
                 addMarker(search)
             }
         }
+        if (requestCode == PLACE_SELECTION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            val carmenFeature = PlacePicker.getPlace(data)
+        }
+    }
+
+    private fun toggleStyle(dark: Boolean) {
+        this.dark = if (dark) {
+            theme = "mapbox://styles/danohealer/cjxbcwi6s4eob1cpw6lupzig3"
+            false
+        } else {
+            theme = "mapbox://styles/danohealer/cjxrm9kn36lns1cqeups6qc3m"
+            true
+        }
+        mapboxMap.setStyle(Style.Builder().fromUri(theme)) {
+            val style: Style = mapboxMap.style!!
+            enableLocationComponent(it)
+            addButtons(style)
+        }
+    }
+
+    fun clearMarkers() {
+        if (!symbolManager.annotations.isEmpty) {
+            symbolManager.annotations.clear()
+            symbolManager.delete(symbol)
+            navigationMapRoute?.removeRoute()
+        }
+        if (BtnNavigation.isEnabled) {
+            BtnNavigation.startAnimation(btnClose)
+        }
+        BtnNavigation.isEnabled = false
+        BtnNavigation.isFocusable = false
+    }
+
+    fun fileHeatMap(file: String) {
+        val style: Style = mapboxMap.style!!
+        clearLayers(style)
+        Firebase.storage.reference.child("/GeoJSON/$file").downloadUrl.addOnSuccessListener {
+                uri ->
+            val geoJson = URI(uri.toString())
+            style.addSource(
+                GeoJsonSource(
+                    HEATMAP_SOURCE,
+                    geoJson
+                )
+            )
+            addHeatmapLayer(style)
+        }.addOnFailureListener{
+                exception -> Toast.makeText(this, exception.toString(), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun addHeatmapLayer(@NonNull loadedMapStyle: Style) {
+        layer = HeatmapLayer(HEATMAP_LAYER_ID, HEATMAP_SOURCE)
+        layer.maxZoom = 19F
+        layer.sourceLayer = HEATMAP_SOURCE_ID
+        layer.setProperties(
+            visibility(VISIBLE),
+            heatmapColor(
+                interpolate(
+                    linear(), heatmapDensity(),
+                    literal(0.01), rgba(0, 0, 0, 0),
+                    literal(0.1), rgba(0, 2, 114, .1),
+                    literal(0.2), rgba(0, 6, 219, .15),
+                    literal(0.3), rgba(0, 74, 255, .2),
+                    literal(0.4), rgba(0, 202, 255, .25),
+                    literal(0.5), rgba(73, 255, 154, .3),
+                    literal(0.6), rgba(171, 255, 59, .35),
+                    literal(0.7), rgba(255, 197, 3, .4),
+                    literal(0.8), rgba(255, 82, 1, 0.6),
+                    literal(0.9), rgba(196, 0, 1, 0.6),
+                    literal(0.95), rgba(121, 0, 0, 0.6)
+                )
+            ),
+            heatmapIntensity(2f),
+            heatmapRadius(30f),
+            heatmapOpacity(0.6f)
+        )
+        loadedMapStyle.addLayer(layer)
+        layers = true
+        MapaDeCalor.startAnimation(fabOpen)
+        MapaDeCalor.isEnabled = true
+        isOpen = true
+    }
+
+    private fun hideHeatmap() {
+        layers = if (layers) {
+            layer.setProperties(
+                visibility(NONE)
+            )
+            false
+        } else {
+            layer.setProperties(
+                visibility(VISIBLE)
+            )
+            true
+        }
+    }
+
+    private fun clearLayers(style: Style) {
+        style.removeLayer(HEATMAP_LAYER_ID)
+        style.removeSource(HEATMAP_SOURCE)
+    }
+
+    private fun showFragment(fragmentShow: String) {
+        val transaction = manager.beginTransaction()
+        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_from_right, R.anim.enter_from_right, R.anim.exit_from_right)
+        if (fragmentShow == "Tourism") {
+            transaction.replace(R.id.fragment_container, TourismFragment())
+        }
+        if (fragmentShow == "Geojson") {
+            transaction.replace(R.id.fragment_container, GeoJsonFragment())
+        }
+        if (fragmentShow == "uTourism") {
+            val fragment = UploadTourismFragment.newInstance(lat, lon)
+            transaction.replace(R.id.fragment_container, fragment)
+        }
+        if (fragmentShow == "uGeojson") {
+            transaction.replace(R.id.fragment_container, UploadGeoJsonFragment())
+        }
+        transaction.addToBackStack(null)
+        transaction.commit()
+        isFragmentOneLoaded = true
+    }
+
+    fun showItem(title:String, description:String, img:String, latitude: Double, longitude: Double) {
+        val fragment = ItemFragment.newInstance(title, description, img, latitude, longitude)
+        val transaction = manager.beginTransaction()
+        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_from_right, R.anim.enter_from_right, R.anim.exit_from_right)
+        transaction.replace(R.id.fragment_container, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+        isFragmentOneLoaded = true
+    }
+
+    fun closeFragment() {
+        val transaction = manager.beginTransaction()
+        supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
+            transaction.remove(it).commit()
+        }
+        isFragmentOneLoaded = false
+    }
+
+    fun finishUploadTourism() {
+        uploadMarker = false
+        removeClicListener()
+    }
+
+    private fun addClicListener() {
+        mapboxMap.addOnMapClickListener(this)
+        Toast.makeText(this, "Toque el mapa para agregar un destino", Toast.LENGTH_SHORT).show()
+    }
+
+    private  fun removeClicListener() {
+        clearMarkers()
+        mapboxMap.removeOnMapClickListener(this)
+    }
+
+    override fun onMapClick(point: LatLng):Boolean {
+        clearMarkers()
+        if (marker) {
+            originLocation.run {
+                val location = mapboxMap.locationComponent.lastKnownLocation
+                val startPoint = Point.fromLngLat(location?.longitude!!, location.latitude)
+                val endPoint = Point.fromLngLat(point.longitude, point.latitude)
+                getRoute(startPoint, endPoint)
+            }
+        }
+        if (uploadMarker) {
+            BtnNavigation.text = "Agregar esta ubicación"
+            BtnNavigation.startAnimation(btnOpen)
+            BtnNavigation.isEnabled = true
+            BtnNavigation.isFocusable = true
+            lat = point.latitude
+            lon = point.longitude
+        }
+        addMarker(point)
+        return true
+    }
+
+    private fun addMarker(point: LatLng) {
+        symbol = symbolManager.create(SymbolOptions()
+            .withIconImage("marker_icon")
+            .withLatLng(point)
+        )
+        symbolManager.addLongClickListener { symbol ->
+            clearMarkers()
+        }
+    }
+
+    private fun getRoute(originPoint: Point, endPoint: Point) {
+        val unitType = DirectionsCriteria.METRIC
+        NavigationRoute.builder(this)
+            .accessToken(Mapbox.getAccessToken()!!)
+            .origin(originPoint)
+            .destination(endPoint)
+            .voiceUnits(unitType)
+            .build()
+            .getRoute(object : Callback<DirectionsResponse> {
+                override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                    Timber.d(t.localizedMessage)
+                }
+
+                override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>
+                ) {
+                    if (navigationMapRoute != null) {
+                        navigationMapRoute?.updateRouteVisibilityTo(false)
+                    } else {
+                        navigationMapRoute = NavigationMapRoute(null, mapView, mapboxMap)
+                    }
+
+                    currentRoute = response.body()?.routes()?.first()
+                    if (currentRoute != null) {
+                        navigationMapRoute?.addRoute(currentRoute)
+                        route = true
+                        BtnNavigation.text = "Iniciar Navegación"
+                        BtnNavigation.startAnimation(btnOpen)
+                        BtnNavigation.isEnabled = true
+                        BtnNavigation.isFocusable = true
+                    }
+                }
+            })
+    }
+
+    fun goToPlace(point: LatLng, latitude: Double, longitude: Double) {
+        clearMarkers()
+        originLocation.run {
+            val location = mapboxMap.locationComponent.lastKnownLocation
+            val startPoint = Point.fromLngLat(location?.longitude!!, location.latitude)
+            val endPoint = Point.fromLngLat(longitude, latitude)
+            getRoute(startPoint, endPoint)
+        }
+        addMarker(point)
+        mapboxMap.animateCamera(
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition.Builder()
+                    .target(point)
+                    .zoom(16.0)
+                    .build()
+            ), 1000
+        )
     }
 
     override fun onStart() {
@@ -574,44 +665,5 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         super.onDestroy()
         locationEngine.removeLocationUpdates(callback)
         mapView.onDestroy()
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.home_page -> {
-                val browserIntent = Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://github.com/Danothnote/SaveMoveKotlin")
-                )
-                startActivity(browserIntent)
-            }
-            R.id.geojson -> {
-                showFragment("Geojson")
-            }
-            R.id.tourism -> {
-                showFragment("Tourism")
-            }
-            R.id.style_switch -> {
-                val style: Style = mapboxMap.style!!
-                clearMarkers()
-                toggleBtn()
-                clearLayers(style)
-                layers = true
-                if (BtnNavigation.isEnabled) {
-                    BtnNavigation.startAnimation(btnClose)
-                }
-                BtnNavigation.isEnabled = false
-                BtnNavigation.isFocusable = false
-                toggleStyle(dark)
-            }
-            R.id.uploadtourism -> {
-                showFragment("uTourism")
-            }
-            R.id.uploadgeojson -> {
-                showFragment("uGeojson")
-            }
-        }
-        drawerLayout.closeDrawer(GravityCompat.START)
-        return true
     }
 }

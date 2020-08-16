@@ -46,7 +46,7 @@ L    <com.google.android.material.appbar.AppBarLayout
             mapbox:mapbox_cameraZoom="15">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/floatingActionButton"
+                android:id="@+id/fabLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
@@ -114,7 +114,7 @@ L    <com.google.android.material.appbar.AppBarLayout
                 android:enabled="false"
                 android:visibility="invisible"
                 android:paddingHorizontal="10dp"
-                android:text="Iniciar Navegación"
+                android:text="Botón"
                 android:textColor="@android:color/white" />
         </com.mapbox.mapboxsdk.maps.MapView>
         <FrameLayout
